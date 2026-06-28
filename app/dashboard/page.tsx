@@ -197,7 +197,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-6">
+        {/* <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-6">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">
             Quick Actions
           </h2>
@@ -218,7 +218,7 @@ export default function DashboardPage() {
               Export Report
             </Button>
           </div>
-        </div>
+        </div> */}
       </div>
     </main>
   );
