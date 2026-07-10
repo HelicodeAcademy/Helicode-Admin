@@ -22,9 +22,11 @@ function SetupConfirmContent() {
   const setUser = useAuthStore((state) => state.setUser);
 
   const emailFromParams = searchParams.get("email") || "";
+  const codeFromParams = searchParams.get("code") || "";
+  const isInvitedAdmin = !emailFromParams && codeFromParams; // Invited admin flow: has code but no email
 
-  const [email] = useState(emailFromParams);
-  const [code, setCode] = useState("");
+  const [email, setEmail] = useState(emailFromParams);
+  const [code, setCode] = useState(codeFromParams);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -71,11 +73,11 @@ function SetupConfirmContent() {
       const { initializeApiClient } = await import("@/lib/api-client");
       initializeApiClient();
 
-      console.log("[v0] Account created, redirecting to dashboard");
+      console.log("Account created, redirecting to dashboard");
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to create account");
-      console.log("[v0] Setup confirm error:", err.response?.data);
+      console.log("Setup confirm error:", err.response?.data);
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,9 @@ function SetupConfirmContent() {
             Complete Setup
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Enter the code from your email and create your account
+            {isInvitedAdmin
+              ? "Enter your email, code, and create your account"
+              : "Enter the code from your email and create your account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -104,9 +108,12 @@ function SetupConfirmContent() {
               <Input
                 id="email"
                 type="email"
+                placeholder={isInvitedAdmin ? "your@email.com" : ""}
                 value={email}
-                disabled
-                className="border border-gray-300 bg-gray-50"
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={!isInvitedAdmin}
+                required
+                className={`border border-gray-300 ${!isInvitedAdmin ? "bg-gray-50" : ""}`}
               />
             </div>
 
