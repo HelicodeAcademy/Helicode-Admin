@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: "📊" },
@@ -13,6 +14,11 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const currentUser = useAuthStore((state) => state.user);
+  const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+  const visibleNavigation = isSuperAdmin
+    ? navigation
+    : navigation.filter((item) => item.href !== "/dashboard/admins");
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
@@ -23,7 +29,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
-        {navigation.map((item) => {
+        {visibleNavigation.map((item) => {
           // Check if current path matches this nav item
           const isActive =
             item.href === "/dashboard"

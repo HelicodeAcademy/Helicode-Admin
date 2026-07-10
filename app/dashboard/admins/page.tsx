@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,7 @@ import { PaginationControls } from "@/components/pagination-controls";
 import { useAuthStore } from "@/store/auth";
 
 export default function AdminsPage() {
+  const router = useRouter();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -39,6 +41,7 @@ export default function AdminsPage() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const currentUser = useAuthStore((state) => state.user);
+  const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
   const LIMIT = 10;
 
   const fetchAdmins = useCallback(
@@ -51,9 +54,10 @@ export default function AdminsPage() {
         const data = await adminAPI.getAdmins(pageNum, LIMIT);
 
         setAdmins(data.data);
-        // setAdmins(data);
-        setTotal(data.data.length);
-        // setTotalPages(data.meta.totalPages);
+        setTotal(data.meta.total);
+        setTotalPages(data.meta.totalPages);
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Failed to load admins");
       } finally {
         setLoading(false);
       }
@@ -62,8 +66,49 @@ export default function AdminsPage() {
   );
 
   useEffect(() => {
-    fetchAdmins(page);
-  }, [fetchAdmins, page]);
+    if (!currentUser) {
+      return;
+    }
+
+    if (!isSuperAdmin) {
+      router.replace("/dashboard");
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadAdmins = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        setSuccessMessage("");
+
+        const data = await adminAPI.getAdmins(page, LIMIT);
+
+        if (cancelled) {
+          return;
+        }
+
+        setAdmins(data.data);
+        setTotal(data.meta.total);
+        setTotalPages(data.meta.totalPages);
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err.response?.data?.message || "Failed to load admins");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadAdmins();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser, isSuperAdmin, page, router, LIMIT]);
 
   const handleResendInvite = async (adminId: string) => {
     try {
@@ -95,6 +140,20 @@ export default function AdminsPage() {
       setDeleting(false);
     }
   };
+
+  if (!currentUser || !isSuperAdmin) {
+    return (
+      <main className="p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-red-800">
+              Access denied. Only the super admin can manage admins.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (loading && admins.length === 0) {
     return (
