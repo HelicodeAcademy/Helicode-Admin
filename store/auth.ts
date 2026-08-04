@@ -78,11 +78,29 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-store",
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        user: state.user,
+      }),
+      // Use the rehydrated `state` arg — do not call useAuthStore here.
+      // localStorage rehydration can finish synchronously during create(),
+      // before the const binding is initialized (TDZ).
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.setHydrated(true);
-        }
+        state?.setHydrated(true);
       },
     },
   ),
 );
+
+// Safety net: if rehydration errored (callback gets no state), still unblock the UI.
+if (typeof window !== "undefined") {
+  useAuthStore.persist.onFinishHydration(() => {
+    if (!useAuthStore.getState().isHydrated) {
+      useAuthStore.setState({ isHydrated: true });
+    }
+  });
+  if (useAuthStore.persist.hasHydrated() && !useAuthStore.getState().isHydrated) {
+    useAuthStore.setState({ isHydrated: true });
+  }
+}

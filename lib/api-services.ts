@@ -123,6 +123,65 @@ export interface AdminsResponse {
   };
 }
 
+export type PayrollTransferStatus =
+  | "INITIATED"
+  | "PROCESSING"
+  | "SUCCESSFUL"
+  | "FAILED";
+
+export type PayrollTransferType =
+  | "pay_now_group"
+  | "pay_now_member"
+  | "pay_now_all"
+  | "payroll_run"
+  | "payroll_top_up";
+
+export interface PayrollRevenueStats {
+  payrollRevenue: string;
+  pendingRevenue: string;
+  currency: string;
+  feePercent: number;
+  settledTransferCount: number;
+  pendingTransferCount: number;
+}
+
+export interface PayrollRevenueTransfer {
+  transactionId: string;
+  bridgeTransactionId: string;
+  company: { id: string; name: string };
+  recipient: {
+    name: string;
+    email: string;
+    walletAddress: string;
+  };
+  transferType: PayrollTransferType;
+  transferAmount: string;
+  grossAmount: string;
+  feeAmount: string;
+  currency: string;
+  status: PayrollTransferStatus;
+  transactionTime: string;
+  transferDate: string;
+}
+
+export interface PayrollRevenueResponse {
+  stats: PayrollRevenueStats;
+  data: PayrollRevenueTransfer[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface PayrollRevenueFilters {
+  companyId?: string;
+  status?: PayrollTransferStatus;
+  from?: string;
+  to?: string;
+}
+
 // Auth endpoints
 export const authAPI = {
   setupCode: async (email: string) => {
@@ -183,6 +242,24 @@ export const dashboardAPI = {
   getTeams: async (page: number = 1, limit: number = 10, filters?: any) => {
     const response = await api.get<{ data: TeamsResponse }>(
       "/admin-dashboard/teams",
+      {
+        params: {
+          page,
+          limit,
+          ...filters,
+        },
+      },
+    );
+    return response.data.data;
+  },
+
+  getPayrollRevenue: async (
+    page: number = 1,
+    limit: number = 20,
+    filters?: PayrollRevenueFilters,
+  ) => {
+    const response = await api.get<{ data: PayrollRevenueResponse }>(
+      "/admin-dashboard/payroll-revenue",
       {
         params: {
           page,

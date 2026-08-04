@@ -2,14 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  UserPlus,
+  Users,
+  Banknote,
+  Settings,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: "📊" },
-  { name: "Signups", href: "/dashboard/signups", icon: "📝" },
-  { name: "Teams", href: "/dashboard/teams", icon: "👥" },
-  { name: "Admins", href: "/dashboard/admins", icon: "⚙️" },
+const navigation: Array<{
+  name: string;
+  href: string;
+  icon: LucideIcon;
+}> = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Payroll Revenue", href: "/dashboard/payroll-revenue", icon: Banknote },
+  { name: "Signups", href: "/dashboard/signups", icon: UserPlus },
+  { name: "Teams", href: "/dashboard/teams", icon: Users },
+  { name: "Admins", href: "/dashboard/admins", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -30,11 +43,11 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
         {visibleNavigation.map((item) => {
-          // Check if current path matches this nav item
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"
               : pathname.startsWith(item.href);
+          const Icon = item.icon;
 
           return (
             <Link
@@ -47,7 +60,7 @@ export function Sidebar() {
                   : "text-gray-700 hover:bg-gray-100",
               )}
             >
-              <span className="text-lg">{item.icon}</span>
+              <Icon className="size-4 shrink-0" strokeWidth={1.75} />
               {item.name}
             </Link>
           );
