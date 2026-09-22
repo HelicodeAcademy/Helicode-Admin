@@ -7,6 +7,7 @@ import {
   UserPlus,
   Users,
   Banknote,
+  ArrowUpFromLine,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -20,6 +21,11 @@ const navigation: Array<{
 }> = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Payroll Revenue", href: "/dashboard/payroll-revenue", icon: Banknote },
+  {
+    name: "Offramp Revenue",
+    href: "/dashboard/offramp-revenue",
+    icon: ArrowUpFromLine,
+  },
   { name: "Signups", href: "/dashboard/signups", icon: UserPlus },
   { name: "Teams", href: "/dashboard/teams", icon: Users },
   { name: "Admins", href: "/dashboard/admins", icon: Settings },

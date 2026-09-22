@@ -182,6 +182,81 @@ export interface PayrollRevenueFilters {
   to?: string;
 }
 
+export type OfframpSource = "TEAM_FIAT" | "COMPANY_FIAT" | "TEAM_CRYPTO";
+export type OfframpProvider = "YELLOWCARD" | "QUIDAX";
+export type OfframpRevenueStatus = "COLLECTED" | "PENDING" | "FAILED";
+
+export interface OfframpSourceBreakdown {
+  collected: string;
+  pending: string;
+  settledTransferCount: number;
+  pendingTransferCount: number;
+}
+
+export interface OfframpRevenueStats {
+  offrampRevenue: string;
+  pendingRevenue: string;
+  currency: string;
+  feePercent: number;
+  settledTransferCount: number;
+  pendingTransferCount: number;
+  bySource: {
+    teamFiat: OfframpSourceBreakdown;
+    companyFiat: OfframpSourceBreakdown;
+    teamCrypto: OfframpSourceBreakdown;
+  };
+}
+
+export interface OfframpRevenueWithdrawal {
+  withdrawalId: string;
+  source: OfframpSource;
+  provider: OfframpProvider | null;
+  bridgeTransferId: string | null;
+  company: { id: string; name: string };
+  member: {
+    name: string | null;
+    email: string | null;
+  } | null;
+  destination: {
+    walletAddress: string | null;
+    payoutAccountName: string | null;
+    payoutAccountNumber: string | null;
+  };
+  transferType: string;
+  transferAmount: string;
+  grossAmount: string;
+  feeAmount: string;
+  feePercent: number;
+  currency: string;
+  localAmount: string | null;
+  localCurrency: string | null;
+  country: string | null;
+  status: string;
+  revenueStatus: OfframpRevenueStatus | null;
+  transactionTime: string;
+  transferDate: string;
+}
+
+export interface OfframpRevenueResponse {
+  stats: OfframpRevenueStats;
+  data: OfframpRevenueWithdrawal[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface OfframpRevenueFilters {
+  companyId?: string;
+  source?: OfframpSource;
+  provider?: OfframpProvider;
+  status?: OfframpRevenueStatus;
+  from?: string;
+  to?: string;
+}
+
 // Auth endpoints
 export const authAPI = {
   setupCode: async (email: string) => {
@@ -260,6 +335,24 @@ export const dashboardAPI = {
   ) => {
     const response = await api.get<{ data: PayrollRevenueResponse }>(
       "/admin-dashboard/payroll-revenue",
+      {
+        params: {
+          page,
+          limit,
+          ...filters,
+        },
+      },
+    );
+    return response.data.data;
+  },
+
+  getOfframpRevenue: async (
+    page: number = 1,
+    limit: number = 20,
+    filters?: OfframpRevenueFilters,
+  ) => {
+    const response = await api.get<{ data: OfframpRevenueResponse }>(
+      "/admin-dashboard/offramp-revenue",
       {
         params: {
           page,
