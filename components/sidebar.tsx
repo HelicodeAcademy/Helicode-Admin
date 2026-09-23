@@ -6,8 +6,7 @@ import {
   LayoutDashboard,
   UserPlus,
   Users,
-  Banknote,
-  ArrowUpFromLine,
+  CircleDollarSign,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -20,12 +19,7 @@ const navigation: Array<{
   icon: LucideIcon;
 }> = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Payroll Revenue", href: "/dashboard/payroll-revenue", icon: Banknote },
-  {
-    name: "Offramp Revenue",
-    href: "/dashboard/offramp-revenue",
-    icon: ArrowUpFromLine,
-  },
+  { name: "Revenue", href: "/dashboard/revenue", icon: CircleDollarSign },
   { name: "Signups", href: "/dashboard/signups", icon: UserPlus },
   { name: "Teams", href: "/dashboard/teams", icon: Users },
   { name: "Admins", href: "/dashboard/admins", icon: Settings },
@@ -41,18 +35,19 @@ export function Sidebar() {
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
-      {/* Logo/Brand */}
       <div className="px-6 py-6 border-b border-gray-200">
         <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
         {visibleNavigation.map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
+              : pathname.startsWith(item.href) ||
+                (item.href === "/dashboard/revenue" &&
+                  (pathname.startsWith("/dashboard/payroll-revenue") ||
+                    pathname.startsWith("/dashboard/offramp-revenue")));
           const Icon = item.icon;
 
           return (
