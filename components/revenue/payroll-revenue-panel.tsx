@@ -2,16 +2,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/admin/date-picker";
 import {
   dashboardAPI,
   PayrollRevenueStats,
@@ -19,6 +12,24 @@ import {
   PayrollTransferStatus,
 } from "@/lib/api-services";
 import { PaginationControls } from "@/components/pagination-controls";
+import {
+  DataTable,
+  EmptyRow,
+  Field,
+  Metric,
+  Money,
+  Notice,
+  Panel,
+  Segmented,
+  StatusPill,
+  TableHead,
+  TableSkeleton,
+  fieldClassName,
+  formatDate,
+  formatLabel,
+  tdClass,
+  thClass,
+} from "@/components/admin/shell";
 
 const STATUS_OPTIONS: Array<{
   label: string;
@@ -30,37 +41,6 @@ const STATUS_OPTIONS: Array<{
   { label: "Successful", value: "SUCCESSFUL" },
   { label: "Failed", value: "FAILED" },
 ];
-
-const formatAmount = (amount: string | number, currency?: string) => {
-  const value = typeof amount === "string" ? Number(amount) : amount;
-  const formatted = Number.isFinite(value)
-    ? value.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    : String(amount);
-  return currency ? `${formatted} ${currency}` : formatted;
-};
-
-const formatTransferType = (type: string) =>
-  type
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-const getStatusBadgeClass = (status: PayrollTransferStatus) => {
-  switch (status) {
-    case "SUCCESSFUL":
-      return "bg-green-100 text-green-800";
-    case "PROCESSING":
-    case "INITIATED":
-      return "bg-yellow-100 text-yellow-800";
-    case "FAILED":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-};
 
 export function PayrollRevenuePanel() {
   const [transfers, setTransfers] = useState<PayrollRevenueTransfer[]>([]);
@@ -128,247 +108,183 @@ export function PayrollRevenuePanel() {
     setPage(1);
   };
 
-  if (loading && transfers.length === 0 && !stats) {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-gray-600">Loading payroll revenue...</p>
-      </div>
-    );
-  }
-
   const currency = stats?.currency || "USDC";
 
-  const statCards = [
-    {
-      title: "Payroll Revenue",
-      value: formatAmount(stats?.payrollRevenue || "0", currency),
-      description: `Fees collected on successful transfers (${stats?.feePercent ?? 0}% fee)`,
-    },
-    {
-      title: "Pending Revenue",
-      value: formatAmount(stats?.pendingRevenue || "0", currency),
-      description: "Fees on initiated / processing transfers",
-    },
-    {
-      title: "Settled Transfers",
-      value: (stats?.settledTransferCount || 0).toLocaleString(),
-      description: "Successful payroll transfers",
-    },
-    {
-      title: "Pending Transfers",
-      value: (stats?.pendingTransferCount || 0).toLocaleString(),
-      description: "Initiated or processing transfers",
-    },
-  ];
-
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((stat) => (
-          <Card key={stat.title} className="border border-gray-200 bg-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700">
-                {stat.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.description}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="border border-gray-200 bg-white">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Filters</CardTitle>
-          <CardDescription>
-            Status filters the transfer list only. Revenue totals still respect
-            company and date range.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {STATUS_OPTIONS.map((option) => (
-              <button
-                key={option.label}
-                onClick={() => {
-                  setFilterStatus(option.value);
-                  setPage(1);
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filterStatus === option.value
-                    ? "bg-[#363636] text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {option.label}
-              </button>
+    <div className="space-y-4">
+      <Panel className="px-5">
+        {loading && !stats ? (
+          <div className="grid gap-4 py-4 md:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="h-16 animate-pulse rounded bg-[#F2F4F7]" />
             ))}
           </div>
+        ) : (
+          <div className="grid divide-y divide-[#E4E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
+            <Metric
+              label="Collected"
+              value={<Money amount={stats?.payrollRevenue || "0"} currency={currency} />}
+              detail={`${stats?.feePercent ?? 0}% fee on successful transfers`}
+            />
+            <Metric
+              label="Pending"
+              value={<Money amount={stats?.pendingRevenue || "0"} currency={currency} />}
+              detail="Initiated or processing"
+            />
+            <Metric
+              label="Settled"
+              value={(stats?.settledTransferCount || 0).toLocaleString()}
+              detail="Successful transfers"
+            />
+            <Metric
+              label="In flight"
+              value={(stats?.pendingTransferCount || 0).toLocaleString()}
+              detail="Awaiting settlement"
+            />
+          </div>
+        )}
+      </Panel>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Company ID
-              </label>
+      <Panel>
+        <div className="space-y-4 border-b border-[#E4E7EC] px-5 py-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="mb-2 text-xs font-medium text-[#667085]">Status</p>
+              <Segmented
+                value={filterStatus}
+                onChange={(value) => {
+                  setFilterStatus(value);
+                  setPage(1);
+                }}
+                options={STATUS_OPTIONS}
+              />
+            </div>
+            <p className="text-xs text-[#98A2B3]">
+              Status filters the list. Totals still follow company and dates.
+            </p>
+          </div>
+
+          <form
+            className="grid gap-3 md:grid-cols-[1fr_11.5rem_11.5rem_auto]"
+            onSubmit={(event) => {
+              event.preventDefault();
+              applyFilters();
+            }}
+          >
+            <Field label="Company ID">
               <Input
                 value={companyIdInput}
                 onChange={(e) => setCompanyIdInput(e.target.value)}
-                placeholder="e.g. cmp_123"
+                placeholder="cmp_123"
+                className={fieldClassName()}
               />
+            </Field>
+            <Field label="From">
+              <DatePicker value={fromInput} onChange={setFromInput} />
+            </Field>
+            <Field label="To">
+              <DatePicker value={toInput} onChange={setToInput} />
+            </Field>
+            <div className="flex items-end gap-2">
+              <Button
+                type="submit"
+                className="h-10 bg-[#0F112A] px-4 text-white hover:bg-[#1D2033]"
+              >
+                Apply
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={clearFilters}
+                className="h-10 border-[#D0D5DD] bg-white text-[#344054] hover:bg-[#F9FAFB]"
+              >
+                Clear
+              </Button>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">From</label>
-              <Input
-                type="date"
-                value={fromInput}
-                onChange={(e) => setFromInput(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">To</label>
-              <Input
-                type="date"
-                value={toInput}
-                onChange={(e) => setToInput(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={applyFilters}
-              className="bg-[#363636] text-white hover:bg-gray-700"
-            >
-              Apply Filters
-            </Button>
-            <Button
-              variant="outline"
-              onClick={clearFilters}
-              className="border border-gray-300 text-gray-700 hover:bg-gray-100"
-            >
-              Clear
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800">{error}</p>
+          </form>
         </div>
-      )}
 
-      <Card className="border border-gray-200 bg-white overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            Transfers ({total})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading && transfers.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600">Loading transfers...</p>
-            </div>
-          ) : transfers.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600">No payroll transfers found</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                      Company
-                    </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                      Recipient
-                    </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                      Type
-                    </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                      Net
-                    </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                      Gross
-                    </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                      Fee
-                    </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                      Status
-                    </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transfers.map((transfer) => (
-                    <tr
-                      key={transfer.transactionId}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-900">
-                          {transfer.company.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {transfer.company.id}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-900">
-                          {transfer.recipient.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {transfer.recipient.email}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">
-                        {formatTransferType(transfer.transferType)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-900">
-                        {formatAmount(
-                          transfer.transferAmount,
-                          transfer.currency,
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-gray-900">
-                        {formatAmount(transfer.grossAmount, transfer.currency)}
-                      </td>
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        {formatAmount(transfer.feeAmount, transfer.currency)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge className={getStatusBadgeClass(transfer.status)}>
-                          {transfer.status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {new Date(
-                          transfer.transferDate || transfer.transactionTime,
-                        ).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {error ? (
+          <div className="px-5 pt-4">
+            <Notice tone="error">{error}</Notice>
+          </div>
+        ) : null}
 
-      <PaginationControls
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
+        <DataTable>
+          <TableHead>
+            <th className={thClass}>Company</th>
+            <th className={thClass}>Recipient</th>
+            <th className={thClass}>Type</th>
+            <th className={`${thClass} text-right`}>Net</th>
+            <th className={`${thClass} text-right`}>Gross</th>
+            <th className={`${thClass} text-right`}>Fee</th>
+            <th className={thClass}>Status</th>
+            <th className={thClass}>Date</th>
+          </TableHead>
+          <tbody>
+            {loading && transfers.length === 0 ? (
+              <TableSkeleton columns={8} />
+            ) : transfers.length === 0 ? (
+              <EmptyRow colSpan={8}>No payroll transfers found</EmptyRow>
+            ) : (
+              transfers.map((transfer) => (
+                <tr
+                  key={transfer.transactionId}
+                  className="border-b border-[#E4E7EC] last:border-0 hover:bg-[#F9FAFB]"
+                >
+                  <td className={tdClass}>
+                    <div className="font-medium">{transfer.company.name}</div>
+                    <div className="text-xs text-[#667085]">
+                      {transfer.company.id}
+                    </div>
+                  </td>
+                  <td className={tdClass}>
+                    <div className="font-medium">{transfer.recipient.name}</div>
+                    <div className="text-xs text-[#667085]">
+                      {transfer.recipient.email}
+                    </div>
+                  </td>
+                  <td className={tdClass}>
+                    {formatLabel(transfer.transferType)}
+                  </td>
+                  <td className={`${tdClass} text-right`}>
+                    <Money
+                      amount={transfer.transferAmount}
+                      currency={transfer.currency}
+                    />
+                  </td>
+                  <td className={`${tdClass} text-right`}>
+                    <Money
+                      amount={transfer.grossAmount}
+                      currency={transfer.currency}
+                    />
+                  </td>
+                  <td className={`${tdClass} text-right`}>
+                    <Money
+                      amount={transfer.feeAmount}
+                      currency={transfer.currency}
+                    />
+                  </td>
+                  <td className={tdClass}>
+                    <StatusPill status={transfer.status} />
+                  </td>
+                  <td className={`${tdClass} whitespace-nowrap text-[#475467]`}>
+                    {formatDate(
+                      transfer.transferDate || transfer.transactionTime,
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </DataTable>
+
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
+      </Panel>
     </div>
   );
 }

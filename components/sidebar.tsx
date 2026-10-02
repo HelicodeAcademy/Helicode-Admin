@@ -13,60 +13,91 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
-const navigation: Array<{
-  name: string;
-  href: string;
-  icon: LucideIcon;
+const groups: Array<{
+  label: string;
+  items: Array<{ name: string; href: string; icon: LucideIcon }>;
 }> = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Revenue", href: "/dashboard/revenue", icon: CircleDollarSign },
-  { name: "Signups", href: "/dashboard/signups", icon: UserPlus },
-  { name: "Teams", href: "/dashboard/teams", icon: Users },
-  { name: "Admins", href: "/dashboard/admins", icon: Settings },
+  {
+    label: "Overview",
+    items: [{ name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "Finance",
+    items: [
+      { name: "Revenue", href: "/dashboard/revenue", icon: CircleDollarSign },
+    ],
+  },
+  {
+    label: "Directory",
+    items: [
+      { name: "Signups", href: "/dashboard/signups", icon: UserPlus },
+      { name: "Teams", href: "/dashboard/teams", icon: Users },
+    ],
+  },
+  {
+    label: "Access",
+    items: [{ name: "Admins", href: "/dashboard/admins", icon: Settings }],
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const currentUser = useAuthStore((state) => state.user);
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
-  const visibleNavigation = isSuperAdmin
-    ? navigation
-    : navigation.filter((item) => item.href !== "/dashboard/admins");
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
-      <div className="px-6 py-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-[#E4E7EC] bg-white">
+      <div className="px-5 py-5">
+        <p className="text-[15px] font-semibold tracking-tight text-[#0F112A]">
+          Helicode
+        </p>
+        <p className="mt-0.5 text-xs text-[#98A2B3]">Admin</p>
       </div>
 
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        {visibleNavigation.map((item) => {
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href) ||
-                (item.href === "/dashboard/revenue" &&
-                  (pathname.startsWith("/dashboard/payroll-revenue") ||
-                    pathname.startsWith("/dashboard/offramp-revenue")));
-          const Icon = item.icon;
+      <nav className="flex-1 space-y-5 px-3 pb-6">
+        {groups.map((group) => {
+          const items = group.items.filter(
+            (item) => isSuperAdmin || item.href !== "/dashboard/admins",
+          );
+          if (items.length === 0) return null;
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-[#363636] text-white"
-                  : "text-gray-700 hover:bg-gray-100",
-              )}
-            >
-              <Icon className="size-4 shrink-0" strokeWidth={1.75} />
-              {item.name}
-            </Link>
+            <div key={group.label}>
+              <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#98A2B3]">
+                {group.label}
+              </p>
+              <div className="space-y-0.5">
+                {items.map((item) => {
+                  const isActive =
+                    item.href === "/dashboard"
+                      ? pathname === "/dashboard"
+                      : pathname.startsWith(item.href) ||
+                        (item.href === "/dashboard/revenue" &&
+                          (pathname.startsWith("/dashboard/payroll-revenue") ||
+                            pathname.startsWith("/dashboard/offramp-revenue")));
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex h-9 items-center gap-2.5 rounded-md px-3 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-[#0052FF]/10 text-[#0052FF]"
+                          : "text-[#585858] hover:bg-[#F9FAFB] hover:text-[#0F112A]",
+                      )}
+                    >
+                      <Icon className="size-4 shrink-0" strokeWidth={1.75} />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </nav>
-    </div>
+    </aside>
   );
 }

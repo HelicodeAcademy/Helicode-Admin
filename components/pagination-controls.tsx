@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { fieldClassName } from "@/components/admin/shell";
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -58,100 +58,80 @@ export function PaginationControls({
     }
   };
 
-  const handleJump = () => {
-    goToPage(Number(jumpValue));
-  };
-
   if (totalPages <= 1) {
     return null;
   }
 
   return (
-    <div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="text-sm text-gray-600">
-        Page <span className="font-medium">{currentPage}</span> of{" "}
-        <span className="font-medium">{totalPages}</span>
-      </div>
+    <div className="flex flex-col gap-3 border-t border-[#E4E7EC] px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm font-medium text-[#344054]">
+        Page {currentPage} of {totalPages}
+      </p>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1.5">
         <Button
           variant="outline"
           size="sm"
           onClick={() => goToPage(currentPage - 1)}
           disabled={currentPage <= 1}
-          className="border border-gray-300 text-gray-700 hover:bg-gray-50"
-          aria-label="Previous page"
+          className="h-8 border-[#D0D5DD] bg-white text-[#344054] hover:bg-[#F9FAFB]"
         >
-          <ChevronLeft className="size-4" />
-          <span className="hidden sm:inline">Previous</span>
+          Previous
         </Button>
 
-        <div className="flex items-center gap-1">
-          {pages.map((page, index) =>
-            page === "ellipsis" ? (
-              <span
-                key={`ellipsis-${index}`}
-                className="px-2 text-sm text-gray-400"
-              >
-                …
-              </span>
-            ) : (
-              <Button
-                key={page}
-                variant="outline"
-                size="sm"
-                onClick={() => goToPage(page)}
-                aria-current={page === currentPage ? "page" : undefined}
-                className={cn(
-                  "min-w-8 border border-gray-300 px-2",
-                  page === currentPage
-                    ? "bg-[#363636] text-white hover:bg-gray-700 hover:text-white"
-                    : "text-gray-700 hover:bg-gray-50",
-                )}
-              >
-                {page}
-              </Button>
-            ),
-          )}
-        </div>
+        {pages.map((page, index) =>
+          page === "ellipsis" ? (
+            <span
+              key={`ellipsis-${index}`}
+              className="px-1 text-sm text-[#98A2B3]"
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={page}
+              type="button"
+              onClick={() => goToPage(page)}
+              aria-current={page === currentPage ? "page" : undefined}
+              className={cn(
+                "h-8 min-w-8 rounded-md px-2 text-sm font-medium",
+                page === currentPage
+                  ? "bg-[#0F112A] text-white"
+                  : "text-[#344054] hover:bg-[#F2F4F7]",
+              )}
+            >
+              {page}
+            </button>
+          ),
+        )}
 
         <Button
           variant="outline"
           size="sm"
           onClick={() => goToPage(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="border border-gray-300 text-gray-700 hover:bg-gray-50"
-          aria-label="Next page"
+          className="h-8 border-[#D0D5DD] bg-white text-[#344054] hover:bg-[#F9FAFB]"
         >
-          <span className="hidden sm:inline">Next</span>
-          <ChevronRight className="size-4" />
+          Next
         </Button>
 
-        <div className="ml-1 flex items-center gap-2">
-          <span className="text-sm text-gray-600 whitespace-nowrap">Go to</span>
+        <form
+          className="ml-2 flex items-center gap-1.5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            goToPage(Number(jumpValue));
+          }}
+        >
           <Input
             type="number"
             min={1}
             max={totalPages}
             value={jumpValue}
             onChange={(event) => setJumpValue(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                handleJump();
-              }
-            }}
-            className="h-7 w-16 border-gray-300 bg-white"
+            className={fieldClassName("h-8 w-14")}
             aria-label="Go to page"
           />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleJump}
-            className="border border-gray-300 text-gray-700 hover:bg-gray-50"
-          >
-            Go
-          </Button>
-        </div>
+        </form>
       </div>
     </div>
   );

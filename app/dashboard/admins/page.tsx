@@ -3,9 +3,22 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import {
+  DataTable,
+  EmptyRow,
+  Notice,
+  Page,
+  PageHeader,
+  Panel,
+  StatusPill,
+  TableHead,
+  TableSkeleton,
+  formatDate,
+  formatLabel,
+  tdClass,
+  thClass,
+} from "@/components/admin/shell";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -143,182 +156,112 @@ export default function AdminsPage() {
 
   if (!currentUser || !isSuperAdmin) {
     return (
-      <main className="p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-            <p className="text-red-800">
-              Access denied. Only the super admin can manage admins.
-            </p>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (loading && admins.length === 0) {
-    return (
-      <div className="p-8">
-        <div className="text-center">
-          <p className="text-gray-600">Loading admins...</p>
-        </div>
-      </div>
+      <Page>
+        <Notice tone="error">
+          Access denied. Only the super admin can manage admins.
+        </Notice>
+      </Page>
     );
   }
 
   return (
-    <main className="p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Admin Management
-            </h1>
-            <p className="mt-2 text-gray-600">Manage platform administrators</p>
-          </div>
-          <InviteAdminDialog onSuccess={() => fetchAdmins(1)} />
-        </div>
+    <Page>
+      <PageHeader
+        eyebrow="Access"
+        title="Admins"
+        description={`${total.toLocaleString()} administrators`}
+        action={<InviteAdminDialog onSuccess={() => fetchAdmins(1)} />}
+      />
 
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800">{successMessage}</p>
-          </div>
-        )}
+      <div className="space-y-4">
+        {successMessage ? (
+          <Notice tone="success">{successMessage}</Notice>
+        ) : null}
+        {error ? <Notice tone="error">{error}</Notice> : null}
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Admins Table */}
-        <Card className="border border-gray-200 bg-white overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">
-              Administrators ({total})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {admins.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-600">No admins found</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                        Name
-                      </th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                        Email
-                      </th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                        Role
-                      </th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                        Status
-                      </th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                        Invited
-                      </th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-900">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {admins.map((admin) => {
-                      const isCurrentUser = currentUser?.id === admin.id;
-                      return (
-                        <tr
-                          key={admin.id}
-                          className="border-b border-gray-100 hover:bg-gray-50"
-                        >
-                          <td className="px-4 py-3 text-gray-900 font-medium">
-                            {admin.firstName} {admin.lastName}
-                          </td>
-                          <td className="px-4 py-3 text-gray-700">
-                            {admin.email}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                              {admin.role.replace(/_/g, " ")}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge
-                              className={
-                                admin.status === "ACTIVE"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }
+        <Panel>
+          <DataTable>
+            <TableHead>
+              <th className={thClass}>Name</th>
+              <th className={thClass}>Email</th>
+              <th className={thClass}>Role</th>
+              <th className={thClass}>Status</th>
+              <th className={thClass}>Invited</th>
+              <th className={thClass}>Actions</th>
+            </TableHead>
+            <tbody>
+              {loading && admins.length === 0 ? (
+                <TableSkeleton columns={6} />
+              ) : admins.length === 0 ? (
+                <EmptyRow colSpan={6}>No admins found</EmptyRow>
+              ) : (
+                admins.map((admin) => {
+                  const isCurrentUser = currentUser?.id === admin.id;
+                  return (
+                    <tr
+                      key={admin.id}
+                      className="border-b border-[#E4E7EC] last:border-0 hover:bg-[#F9FAFB]"
+                    >
+                      <td className={`${tdClass} font-medium`}>
+                        {admin.firstName} {admin.lastName}
+                      </td>
+                      <td className={tdClass}>{admin.email}</td>
+                      <td className={tdClass}>{formatLabel(admin.role)}</td>
+                      <td className={tdClass}>
+                        <StatusPill status={admin.status} />
+                      </td>
+                      <td className={`${tdClass} text-[#475467]`}>
+                        {formatDate(admin.createdAt)}
+                      </td>
+                      <td className={tdClass}>
+                        <div className="flex gap-2">
+                          {admin.status === "PENDING" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleResendInvite(admin.id)}
+                              className="h-8 border-[#D0D5DD] text-[#344054] hover:bg-[#F9FAFB]"
+                              disabled={isCurrentUser}
                             >
-                              {admin.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">
-                            {new Date(admin.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex gap-2">
-                              {admin.status === "PENDING" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleResendInvite(admin.id)}
-                                  className="border border-gray-300 text-gray-700 hover:bg-gray-50"
-                                  disabled={isCurrentUser}
-                                >
-                                  Resend
-                                </Button>
-                              )}
+                              Resend
+                            </Button>
+                          )}
 
-                              {!isCurrentUser && (
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() =>
-                                    setDeleteConfirm({
-                                      open: true,
-                                      adminId: admin.id,
-                                      adminEmail: admin.email,
-                                    })
-                                  }
-                                  className="bg-red-600 text-white hover:bg-red-700"
-                                >
-                                  Remove
-                                </Button>
-                              )}
+                          {!isCurrentUser && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() =>
+                                setDeleteConfirm({
+                                  open: true,
+                                  adminId: admin.id,
+                                  adminEmail: admin.email,
+                                })
+                              }
+                              className="h-8"
+                            >
+                              Remove
+                            </Button>
+                          )}
 
-                              {isCurrentUser && (
-                                <span className="text-xs text-gray-500 italic">
-                                  Current User
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                          {isCurrentUser && (
+                            <span className="text-xs text-[#98A2B3]">You</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </DataTable>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
           <PaginationControls
             currentPage={page}
             totalPages={totalPages}
             onPageChange={setPage}
           />
-        )}
+        </Panel>
       </div>
 
       {/* Delete Confirmation Dialog */}
@@ -354,6 +297,6 @@ export default function AdminsPage() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
-    </main>
+    </Page>
   );
 }

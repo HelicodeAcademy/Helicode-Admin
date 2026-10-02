@@ -85,8 +85,8 @@ export interface TeamMember {
   email: string;
   fullName: string;
   role: string;
-  walletBalance: number;
-  totalTransactions: number;
+  walletBalance?: number | null;
+  totalTransactions?: number | null;
   companies: Companies[];
   createdAt: string;
   signupDate: string;
