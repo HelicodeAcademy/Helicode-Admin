@@ -20,15 +20,15 @@ export function PageHeader({
     <header className="mb-5 flex items-end justify-between gap-4">
       <div>
         {eyebrow ? (
-          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#98A2B3]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-subtle">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="mt-1 text-xl font-semibold tracking-tight text-[#0F112A]">
+        <h1 className="mt-1 text-xl font-semibold tracking-tight text-ink">
           {title}
         </h1>
         {description ? (
-          <p className="mt-1 text-sm text-[#667085]">{description}</p>
+          <p className="mt-1 text-sm text-ink-muted">{description}</p>
         ) : null}
       </div>
       {action}
@@ -45,10 +45,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={cn(
-        "rounded-lg border border-[#E4E7EC] bg-white",
-        className,
-      )}
+      className={cn("rounded-lg border border-line bg-surface", className)}
     >
       {children}
     </section>
@@ -66,13 +63,13 @@ export function Metric({
 }) {
   return (
     <div className="min-w-0 px-5 py-4 first:pl-0 last:pr-0">
-      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#667085]">
+      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
         {label}
       </p>
-      <p className="mt-2 text-[1.75rem] font-semibold leading-none tracking-tight text-[#050505] tabular-nums">
+      <p className="mt-2 text-[1.75rem] font-semibold leading-none tracking-tight text-ink tabular-nums">
         {value}
       </p>
-      {detail ? <p className="mt-2 text-sm text-[#667085]">{detail}</p> : null}
+      {detail ? <p className="mt-2 text-sm text-ink-muted">{detail}</p> : null}
     </div>
   );
 }
@@ -85,7 +82,7 @@ export function Money({
   currency?: string;
 }) {
   if (amount === null || amount === undefined || amount === "") {
-    return <span className="text-[#98A2B3]">—</span>;
+    return <span className="text-ink-subtle">—</span>;
   }
 
   const value = typeof amount === "string" ? Number(amount) : amount;
@@ -104,12 +101,12 @@ export function Money({
   const dollar = unit === "USD" || unit === "USDC" || !unit;
 
   return (
-    <span className="tabular-nums font-medium text-[#101928]">
+    <span className="tabular-nums font-medium text-ink">
       {dollar ? "$" : ""}
       {whole}
-      <span className="text-[#C5C5C5]">.{fraction}</span>
+      <span className="text-ink-subtle">.{fraction}</span>
       {!dollar && unit ? (
-        <span className="ml-1 text-xs font-medium text-[#667085]">{unit}</span>
+        <span className="ml-1 text-xs font-medium text-ink-muted">{unit}</span>
       ) : null}
     </span>
   );
@@ -140,6 +137,10 @@ function statusTone(status: string | null | undefined): StatusTone {
       "INITIATED",
       "CRYPTO_SENT",
       "YC_PAYMENT_CREATED",
+      "UNDER_REVIEW",
+      "AWAITING_UBO",
+      "NOT_STARTED",
+      "INCOMPLETE",
     ].includes(value)
   ) {
     return "warning";
@@ -152,6 +153,7 @@ function statusTone(status: string | null | undefined): StatusTone {
       "REFUNDED",
       "PENDING_REFUND",
       "REFUND_FAILED",
+      "DISABLED",
     ].includes(value)
   ) {
     return "negative";
@@ -160,10 +162,13 @@ function statusTone(status: string | null | undefined): StatusTone {
 }
 
 const toneClass: Record<StatusTone, string> = {
-  positive: "border-[#CAEFDC] bg-[#ECFDF3] text-[#4D8F72]",
-  warning: "border-[#E5D7CB] bg-[#FFEFE2] text-[#EE7D1F]",
-  negative: "border-[#F0D0D0] bg-[#FDECEC] text-[#D32828]",
-  neutral: "border-[#E4E7EC] bg-[#F9FAFB] text-[#344054]",
+  positive:
+    "border-[#CAEFDC] bg-[#ECFDF3] text-[#4D8F72] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-400",
+  warning:
+    "border-[#E5D7CB] bg-[#FFEFE2] text-[#EE7D1F] dark:border-orange-500/25 dark:bg-orange-500/10 dark:text-orange-400",
+  negative:
+    "border-[#F0D0D0] bg-[#FDECEC] text-[#D32828] dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-400",
+  neutral: "border-line bg-surface-muted text-ink-secondary",
 };
 
 export function StatusPill({
@@ -196,7 +201,7 @@ export function Segmented<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <div className="inline-flex w-fit rounded-lg border border-[#E4E7EC] bg-[#F1F2F3] p-1">
+    <div className="inline-flex w-fit rounded-lg border border-line bg-surface-subtle p-1">
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -207,8 +212,8 @@ export function Segmented<T extends string>({
             className={cn(
               "rounded-md px-3.5 py-1.5 text-sm transition-colors",
               active
-                ? "bg-white font-semibold text-[#0F112A] shadow-sm"
-                : "font-medium text-[#475467] hover:text-[#0F112A]",
+                ? "bg-surface font-semibold text-ink shadow-sm"
+                : "font-medium text-ink-muted hover:text-ink",
             )}
           >
             {option.label}
@@ -221,8 +226,34 @@ export function Segmented<T extends string>({
 
 export function fieldClassName(extra?: string) {
   return cn(
-    "h-10 rounded-md border-[#E4E7EC] bg-white px-3 text-sm text-[#0F112A] placeholder:text-[#98A2B3]",
+    "h-10 rounded-md border border-line bg-surface px-3 text-sm text-ink outline-none placeholder:text-ink-subtle focus-visible:border-line-strong dark:bg-surface",
     extra,
+  );
+}
+
+export function NativeSelect({
+  value,
+  onChange,
+  options,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ label: string; value: string }>;
+  className?: string;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={cn(fieldClassName("admin-native-select"), className)}
+    >
+      {options.map((option) => (
+        <option key={option.value || option.label} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }
 
@@ -235,16 +266,16 @@ export function Field({
 }) {
   return (
     <label className="flex min-w-0 flex-col gap-1.5">
-      <span className="text-xs font-medium text-[#667085]">{label}</span>
+      <span className="text-xs font-medium text-ink-muted">{label}</span>
       {children}
     </label>
   );
 }
 
 export const thClass =
-  "px-5 py-3 text-left text-[11px] font-medium uppercase tracking-[0.06em] text-[#667085]";
+  "px-5 py-3 text-left text-[11px] font-medium uppercase tracking-[0.06em] text-ink-muted";
 
-export const tdClass = "px-5 py-4 text-sm text-[#101928]";
+export const tdClass = "px-5 py-4 text-sm text-ink";
 
 export function DataTable({ children }: { children: ReactNode }) {
   return (
@@ -257,7 +288,7 @@ export function DataTable({ children }: { children: ReactNode }) {
 export function TableHead({ children }: { children: ReactNode }) {
   return (
     <thead>
-      <tr className="border-b border-[#E4E7EC] bg-[#F9FAFB]">{children}</tr>
+      <tr className="border-b border-line bg-surface-muted">{children}</tr>
     </thead>
   );
 }
@@ -273,7 +304,7 @@ export function EmptyRow({
     <tr>
       <td
         colSpan={colSpan}
-        className="px-5 py-12 text-center text-sm text-[#667085]"
+        className="px-5 py-12 text-center text-sm text-ink-muted"
       >
         {children}
       </td>
@@ -285,16 +316,19 @@ export function Notice({
   tone,
   children,
 }: {
-  tone: "error" | "success";
+  tone: "error" | "success" | "warning";
   children: ReactNode;
 }) {
   return (
     <div
       className={cn(
         "rounded-md border px-3.5 py-2.5 text-sm",
-        tone === "error"
-          ? "border-[#F0D0D0] bg-[#FDECEC] text-[#912018]"
-          : "border-[#CAEFDC] bg-[#ECFDF3] text-[#05603A]",
+        tone === "error" &&
+          "border-[#F0D0D0] bg-[#FDECEC] text-[#912018] dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-400",
+        tone === "success" &&
+          "border-[#CAEFDC] bg-[#ECFDF3] text-[#05603A] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-400",
+        tone === "warning" &&
+          "border-[#E5D7CB] bg-[#FFF7ED] text-[#B54708] dark:border-orange-500/25 dark:bg-orange-500/10 dark:text-orange-400",
       )}
     >
       {children}
@@ -312,10 +346,10 @@ export function TableSkeleton({
   return (
     <>
       {Array.from({ length: rows }).map((_, row) => (
-        <tr key={row} className="border-b border-[#E4E7EC]">
+        <tr key={row} className="border-b border-line">
           {Array.from({ length: columns }).map((__, cell) => (
             <td key={cell} className="px-5 py-4">
-              <div className="h-3.5 w-3/4 animate-pulse rounded bg-[#F2F4F7]" />
+              <div className="h-3.5 w-3/4 animate-pulse rounded bg-surface-muted" />
             </td>
           ))}
         </tr>

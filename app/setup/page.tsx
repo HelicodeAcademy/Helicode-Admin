@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { authAPI } from "@/lib/api-services";
 
 export default function SetupPage() {
@@ -43,24 +44,25 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border border-gray-200">
+    <div className="relative flex min-h-screen items-center justify-center bg-canvas p-4">
+      <ThemeToggle className="absolute right-4 top-4" />
+      <Card className="w-full max-w-md border border-line bg-surface">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-ink">
             Admin Setup
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-ink-muted">
             Enter your email to receive a setup code
           </CardDescription>
         </CardHeader>
         <CardContent>
           {success ? (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800 font-medium">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+                <p className="text-sm font-medium text-green-800 dark:text-emerald-400">
                   Setup code sent to {email}
                 </p>
-                <p className="text-xs text-green-700 mt-2">
+                <p className="mt-2 text-xs text-green-700 dark:text-emerald-400/80">
                   Redirecting to confirmation page...
                 </p>
               </div>
@@ -70,7 +72,7 @@ export default function SetupPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="text-sm font-medium text-gray-900"
+                  className="text-sm font-medium text-ink"
                 >
                   Email Address
                 </label>
@@ -81,20 +83,20 @@ export default function SetupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="border border-gray-300"
+                  className="border border-line-strong bg-surface text-ink dark:bg-surface"
                 />
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-800">{error}</p>
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-500/25 dark:bg-red-500/10">
+                  <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
                 </div>
               )}
 
               <Button
                 type="submit"
                 disabled={loading || !email}
-                className="w-full bg-[#363636] text-white hover:bg-gray-700"
+                className="w-full bg-ink text-canvas hover:bg-ink/90"
               >
                 {loading ? "Sending..." : "Send Setup Code"}
               </Button>

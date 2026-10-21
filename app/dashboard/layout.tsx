@@ -30,14 +30,14 @@ export default function DashboardLayout({
   // Show loading state while hydrating or not authenticated
   if (!isHydrated || !accessToken || !user) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white">
-        <p className="text-gray-600">Loading...</p>
+      <div className="flex h-screen items-center justify-center bg-canvas">
+        <p className="text-ink-muted">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-[#F7F8FA]">
+    <div className="flex h-screen bg-canvas">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <UserHeader />

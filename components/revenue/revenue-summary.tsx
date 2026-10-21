@@ -99,12 +99,12 @@ export function RevenueSummary() {
             {Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
-                className="h-16 animate-pulse rounded bg-[#F2F4F7]"
+                className="h-16 animate-pulse rounded bg-surface-muted"
               />
             ))}
           </div>
         ) : (
-          <div className="grid divide-y divide-[#E4E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
+          <div className="grid divide-y divide-line md:grid-cols-4 md:divide-x md:divide-y-0">
             <Metric
               label="Total collected"
               value={

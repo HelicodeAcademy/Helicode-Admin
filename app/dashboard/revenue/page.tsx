@@ -61,7 +61,7 @@ export default function RevenuePage() {
     <Suspense
       fallback={
         <Page>
-          <p className="text-sm text-[#667085]">Loading revenue...</p>
+          <p className="text-sm text-ink-muted">Loading revenue...</p>
         </Page>
       }
     >

@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { SearchInput } from "@/components/admin/search-input";
+import { useDebounce } from "@/hooks/use-debounce";
+import { ADMIN_STATUS_OPTIONS } from "@/lib/list-filter-options";
 import {
   DataTable,
   EmptyRow,
+  NativeSelect,
   Notice,
   Page,
   PageHeader,
@@ -55,7 +59,21 @@ export default function AdminsPage() {
 
   const currentUser = useAuthStore((state) => state.user);
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
-  const LIMIT = 10;
+  const LIMIT = 20;
+  const [searchInput, setSearchInput] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const search = useDebounce(searchInput.trim());
+  const filters = useMemo(
+    () => ({
+      search: search || undefined,
+      status: (statusFilter || undefined) as
+        | "PENDING"
+        | "ACTIVE"
+        | "DISABLED"
+        | undefined,
+    }),
+    [search, statusFilter],
+  );
 
   const fetchAdmins = useCallback(
     async (pageNum: number) => {
@@ -64,7 +82,7 @@ export default function AdminsPage() {
         setError("");
         setSuccessMessage("");
 
-        const data = await adminAPI.getAdmins(pageNum, LIMIT);
+        const data = await adminAPI.getAdmins(pageNum, LIMIT, filters);
 
         setAdmins(data.data);
         setTotal(data.meta.total);
@@ -75,8 +93,12 @@ export default function AdminsPage() {
         setLoading(false);
       }
     },
-    [LIMIT],
+    [LIMIT, filters],
   );
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -96,7 +118,7 @@ export default function AdminsPage() {
         setError("");
         setSuccessMessage("");
 
-        const data = await adminAPI.getAdmins(page, LIMIT);
+        const data = await adminAPI.getAdmins(page, LIMIT, filters);
 
         if (cancelled) {
           return;
@@ -121,7 +143,7 @@ export default function AdminsPage() {
     return () => {
       cancelled = true;
     };
-  }, [currentUser, isSuperAdmin, page, router, LIMIT]);
+  }, [currentUser, isSuperAdmin, page, router, LIMIT, filters]);
 
   const handleResendInvite = async (adminId: string) => {
     try {
@@ -180,6 +202,25 @@ export default function AdminsPage() {
         {error ? <Notice tone="error">{error}</Notice> : null}
 
         <Panel>
+          <div className="flex flex-col gap-3 border-b border-line px-5 py-4 md:flex-row">
+            <SearchInput
+              value={searchInput}
+              onChange={(value) => {
+                setSearchInput(value);
+                setPage(1);
+              }}
+              placeholder="Search name or email"
+            />
+            <NativeSelect
+              value={statusFilter}
+              onChange={(value) => {
+                setStatusFilter(value);
+                setPage(1);
+              }}
+              options={[...ADMIN_STATUS_OPTIONS]}
+              className="md:w-44"
+            />
+          </div>
           <DataTable>
             <TableHead>
               <th className={thClass}>Name</th>
@@ -200,7 +241,7 @@ export default function AdminsPage() {
                   return (
                     <tr
                       key={admin.id}
-                      className="border-b border-[#E4E7EC] last:border-0 hover:bg-[#F9FAFB]"
+                      className="border-b border-line last:border-0 hover:bg-surface-muted"
                     >
                       <td className={`${tdClass} font-medium`}>
                         {admin.firstName} {admin.lastName}
@@ -220,7 +261,7 @@ export default function AdminsPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleResendInvite(admin.id)}
-                              className="h-8 border-[#D0D5DD] text-[#344054] hover:bg-[#F9FAFB]"
+                              className="h-8 border-line-strong text-ink-secondary hover:bg-surface-muted"
                               disabled={isCurrentUser}
                             >
                               Resend
@@ -245,7 +286,7 @@ export default function AdminsPage() {
                           )}
 
                           {isCurrentUser && (
-                            <span className="text-xs text-[#98A2B3]">You</span>
+                            <span className="text-xs text-ink-subtle">You</span>
                           )}
                         </div>
                       </td>
@@ -273,18 +314,18 @@ export default function AdminsPage() {
           }
         }}
       >
-        <AlertDialogContent className="border border-gray-200">
+        <AlertDialogContent className="border border-line bg-surface">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-bold text-gray-900">
+            <AlertDialogTitle className="text-lg font-bold text-ink">
               Remove Admin
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
+            <AlertDialogDescription className="text-ink-muted">
               Are you sure you want to remove {deleteConfirm.adminEmail}? This
               action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2 justify-end">
-            <AlertDialogCancel className="border border-gray-300 text-gray-700 hover:bg-gray-50">
+            <AlertDialogCancel className="border border-line-strong text-ink-secondary hover:bg-surface-muted">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

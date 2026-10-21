@@ -61,13 +61,13 @@ export default function DashboardPage() {
               <div className="grid gap-4 py-4 md:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div key={index} className="space-y-2 py-2">
-                    <div className="h-3 w-20 animate-pulse rounded bg-[#F2F4F7]" />
-                    <div className="h-7 w-24 animate-pulse rounded bg-[#F2F4F7]" />
+                    <div className="h-3 w-20 animate-pulse rounded bg-surface-muted" />
+                    <div className="h-7 w-24 animate-pulse rounded bg-surface-muted" />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="grid divide-y divide-[#E4E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
+              <div className="grid divide-y divide-line md:grid-cols-4 md:divide-x md:divide-y-0">
                 <Metric
                   label="Signups"
                   value={stats?.totalSignups.toLocaleString() || "0"}
@@ -129,20 +129,20 @@ function Breakdown({
 }) {
   return (
     <Panel className="p-5">
-      <h2 className="text-sm font-semibold text-[#0F112A]">{title}</h2>
+      <h2 className="text-sm font-semibold text-ink">{title}</h2>
       {rows.length === 0 ? (
-        <p className="mt-6 text-sm text-[#667085]">{empty}</p>
+        <p className="mt-6 text-sm text-ink-muted">{empty}</p>
       ) : (
         <ul className="mt-4 space-y-3.5">
           {rows.map((row) => (
             <li key={row.label}>
               <div className="mb-1.5 flex items-baseline justify-between gap-4">
-                <span className="text-sm text-[#344054]">{row.label}</span>
+                <span className="text-sm text-ink-secondary">{row.label}</span>
                 <Money amount={row.amount} />
               </div>
-              <div className="h-1 overflow-hidden rounded-full bg-[#F2F4F7]">
+              <div className="h-1 overflow-hidden rounded-full bg-surface-muted">
                 <div
-                  className="h-full rounded-full bg-[#0F112A]"
+                  className="h-full rounded-full bg-ink"
                   style={{ width: `${Math.max(row.share, 2)}%` }}
                 />
               </div>

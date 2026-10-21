@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/admin/date-picker";
+import { ExportButton } from "@/components/admin/export-button";
 import {
   dashboardAPI,
   OfframpProvider,
@@ -66,7 +67,9 @@ export function OfframpRevenuePanel() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const [filterStatus, setFilterStatus] = useState<OfframpRevenueStatus | "">(
     "",
@@ -75,10 +78,10 @@ export function OfframpRevenuePanel() {
   const [filterProvider, setFilterProvider] = useState<OfframpProvider | "">(
     "",
   );
-  const [companyIdInput, setCompanyIdInput] = useState("");
+  const [companySearchInput, setCompanySearchInput] = useState("");
   const [fromInput, setFromInput] = useState("");
   const [toInput, setToInput] = useState("");
-  const [appliedCompanyId, setAppliedCompanyId] = useState("");
+  const [appliedCompanySearch, setAppliedCompanySearch] = useState("");
   const [appliedFrom, setAppliedFrom] = useState("");
   const [appliedTo, setAppliedTo] = useState("");
 
@@ -93,7 +96,7 @@ export function OfframpRevenuePanel() {
           status: filterStatus || undefined,
           source: filterSource || undefined,
           provider: filterProvider || undefined,
-          companyId: appliedCompanyId || undefined,
+          companySearch: appliedCompanySearch || undefined,
           from: appliedFrom || undefined,
           to: appliedTo || undefined,
         });
@@ -116,13 +119,22 @@ export function OfframpRevenuePanel() {
     filterStatus,
     filterSource,
     filterProvider,
-    appliedCompanyId,
+    appliedCompanySearch,
     appliedFrom,
     appliedTo,
   ]);
 
+  const listFilters = {
+    status: filterStatus || undefined,
+    source: filterSource || undefined,
+    provider: filterProvider || undefined,
+    companySearch: appliedCompanySearch || undefined,
+    from: appliedFrom || undefined,
+    to: appliedTo || undefined,
+  };
+
   const applyFilters = () => {
-    setAppliedCompanyId(companyIdInput.trim());
+    setAppliedCompanySearch(companySearchInput.trim());
     setAppliedFrom(fromInput);
     setAppliedTo(toInput);
     setPage(1);
@@ -132,13 +144,31 @@ export function OfframpRevenuePanel() {
     setFilterStatus("");
     setFilterSource("");
     setFilterProvider("");
-    setCompanyIdInput("");
+    setCompanySearchInput("");
     setFromInput("");
     setToInput("");
-    setAppliedCompanyId("");
+    setAppliedCompanySearch("");
     setAppliedFrom("");
     setAppliedTo("");
     setPage(1);
+  };
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      setError("");
+      setNotice("");
+      const result = await dashboardAPI.exportOfframpRevenueCsv(listFilters);
+      if (result.truncated) {
+        setNotice(
+          "Export was cut off at 10,000 rows. Narrow your filters and export again.",
+        );
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || "Failed to export CSV");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const currency = stats?.currency || "USDC";
@@ -162,11 +192,11 @@ export function OfframpRevenuePanel() {
         {loading && !stats ? (
           <div className="grid gap-4 py-4 md:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-16 animate-pulse rounded bg-[#F2F4F7]" />
+              <div key={index} className="h-16 animate-pulse rounded bg-surface-muted" />
             ))}
           </div>
         ) : (
-          <div className="grid divide-y divide-[#E4E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
+          <div className="grid divide-y divide-line md:grid-cols-4 md:divide-x md:divide-y-0">
             <Metric
               label="Collected"
               value={
@@ -196,21 +226,21 @@ export function OfframpRevenuePanel() {
       </Panel>
 
       <Panel className="overflow-hidden">
-        <div className="grid divide-y divide-[#E4E7EC] md:grid-cols-3 md:divide-x md:divide-y-0">
+        <div className="grid divide-y divide-line md:grid-cols-3 md:divide-x md:divide-y-0">
           {sources.map((source) => (
             <div key={source.key} className="px-5 py-4">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#667085]">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
                 {source.title}
               </p>
               <div className="mt-3 flex items-baseline justify-between gap-3">
-                <span className="text-xs text-[#667085]">Collected</span>
+                <span className="text-xs text-ink-muted">Collected</span>
                 <Money amount={source.data?.collected || "0"} currency={currency} />
               </div>
               <div className="mt-1.5 flex items-baseline justify-between gap-3">
-                <span className="text-xs text-[#667085]">Pending</span>
+                <span className="text-xs text-ink-muted">Pending</span>
                 <Money amount={source.data?.pending || "0"} currency={currency} />
               </div>
-              <p className="mt-3 text-xs text-[#98A2B3]">
+              <p className="mt-3 text-xs text-ink-subtle">
                 {source.data?.settledTransferCount ?? 0} settled ·{" "}
                 {source.data?.pendingTransferCount ?? 0} pending
               </p>
@@ -220,10 +250,10 @@ export function OfframpRevenuePanel() {
       </Panel>
 
       <Panel>
-        <div className="space-y-4 border-b border-[#E4E7EC] px-5 py-4">
+        <div className="space-y-4 border-b border-line px-5 py-4">
           <div className="flex flex-col gap-4">
             <div>
-              <p className="mb-2 text-xs font-medium text-[#667085]">
+              <p className="mb-2 text-xs font-medium text-ink-muted">
                 Revenue status
               </p>
               <Segmented
@@ -236,7 +266,7 @@ export function OfframpRevenuePanel() {
               />
             </div>
             <div>
-              <p className="mb-2 text-xs font-medium text-[#667085]">Source</p>
+              <p className="mb-2 text-xs font-medium text-ink-muted">Source</p>
               <Segmented
                 value={filterSource}
                 onChange={(value) => {
@@ -246,16 +276,19 @@ export function OfframpRevenuePanel() {
                 options={SOURCE_OPTIONS}
               />
             </div>
-            <div>
-              <p className="mb-2 text-xs font-medium text-[#667085]">Provider</p>
-              <Segmented
-                value={filterProvider}
-                onChange={(value) => {
-                  setFilterProvider(value);
-                  setPage(1);
-                }}
-                options={PROVIDER_OPTIONS}
-              />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="mb-2 text-xs font-medium text-ink-muted">Provider</p>
+                <Segmented
+                  value={filterProvider}
+                  onChange={(value) => {
+                    setFilterProvider(value);
+                    setPage(1);
+                  }}
+                  options={PROVIDER_OPTIONS}
+                />
+              </div>
+              <ExportButton loading={exporting} onClick={handleExport} />
             </div>
           </div>
 
@@ -266,11 +299,11 @@ export function OfframpRevenuePanel() {
               applyFilters();
             }}
           >
-            <Field label="Company ID">
+            <Field label="Company">
               <Input
-                value={companyIdInput}
-                onChange={(e) => setCompanyIdInput(e.target.value)}
-                placeholder="cmp_123"
+                value={companySearchInput}
+                onChange={(e) => setCompanySearchInput(e.target.value.slice(0, 100))}
+                placeholder="Search company name"
                 className={fieldClassName()}
               />
             </Field>
@@ -283,7 +316,7 @@ export function OfframpRevenuePanel() {
             <div className="flex items-end gap-2">
               <Button
                 type="submit"
-                className="h-10 bg-[#0F112A] px-4 text-white hover:bg-[#1D2033]"
+                className="h-10 bg-ink px-4 text-canvas hover:bg-ink/90"
               >
                 Apply
               </Button>
@@ -291,7 +324,7 @@ export function OfframpRevenuePanel() {
                 type="button"
                 variant="outline"
                 onClick={clearFilters}
-                className="h-10 border-[#D0D5DD] bg-white text-[#344054] hover:bg-[#F9FAFB]"
+                className="h-10 border-line-strong bg-surface text-ink-secondary hover:bg-surface-muted"
               >
                 Clear
               </Button>
@@ -302,6 +335,11 @@ export function OfframpRevenuePanel() {
         {error ? (
           <div className="px-5 pt-4">
             <Notice tone="error">{error}</Notice>
+          </div>
+        ) : null}
+        {notice ? (
+          <div className="px-5 pt-4">
+            <Notice tone="warning">{notice}</Notice>
           </div>
         ) : null}
 
@@ -326,25 +364,25 @@ export function OfframpRevenuePanel() {
               withdrawals.map((row) => (
                 <tr
                   key={row.withdrawalId}
-                  className="border-b border-[#E4E7EC] last:border-0 hover:bg-[#F9FAFB]"
+                  className="border-b border-line last:border-0 hover:bg-surface-muted"
                 >
                   <td className={`${tdClass} whitespace-nowrap text-[#475467]`}>
                     {formatDate(row.transferDate || row.transactionTime)}
                   </td>
                   <td className={tdClass}>
                     <div className="font-medium">{row.company.name}</div>
-                    <div className="text-xs text-[#667085]">{row.company.id}</div>
+                    <div className="text-xs text-ink-muted">{row.company.id}</div>
                   </td>
                   <td className={tdClass}>
                     {row.member?.name || row.member?.email ? (
                       <>
                         <div className="font-medium">{row.member.name || "—"}</div>
-                        <div className="text-xs text-[#667085]">
+                        <div className="text-xs text-ink-muted">
                           {row.member.email || "—"}
                         </div>
                       </>
                     ) : (
-                      <span className="text-[#98A2B3]">—</span>
+                      <span className="text-ink-subtle">—</span>
                     )}
                   </td>
                   <td className={tdClass}>{formatLabel(row.source)}</td>
@@ -354,21 +392,21 @@ export function OfframpRevenuePanel() {
                   <td className={`${tdClass} text-right`}>
                     <Money amount={row.grossAmount} currency={row.currency} />
                     {row.localAmount && row.localCurrency ? (
-                      <div className="text-xs text-[#667085]">
+                      <div className="text-xs text-ink-muted">
                         {row.localAmount} {row.localCurrency}
                       </div>
                     ) : null}
                   </td>
                   <td className={`${tdClass} text-right`}>
                     <Money amount={row.feeAmount} currency={row.currency} />
-                    <div className="text-xs text-[#667085]">{row.feePercent}%</div>
+                    <div className="text-xs text-ink-muted">{row.feePercent}%</div>
                   </td>
                   <td className={`${tdClass} text-right`}>
                     <Money amount={row.transferAmount} currency={row.currency} />
                   </td>
                   <td className={tdClass}>
                     <StatusPill status={row.revenueStatus} />
-                    <div className="mt-1 text-xs text-[#98A2B3]">
+                    <div className="mt-1 text-xs text-ink-subtle">
                       {formatLabel(row.status)}
                     </div>
                   </td>

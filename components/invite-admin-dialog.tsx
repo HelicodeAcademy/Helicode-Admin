@@ -50,16 +50,16 @@ export function InviteAdminDialog({ onSuccess }: InviteAdminDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#0052FF] text-white hover:bg-blue-700">
+        <Button className="bg-brand text-white hover:bg-brand/90">
           Invite Admin
         </Button>
       </DialogTrigger>
-      <DialogContent className="border border-gray-200">
+      <DialogContent className="border border-line bg-surface">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-gray-900">
+          <DialogTitle className="text-lg font-bold text-ink">
             Invite New Admin
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogDescription className="text-ink-muted">
             Send an invitation to a new admin user
           </DialogDescription>
         </DialogHeader>
@@ -68,7 +68,7 @@ export function InviteAdminDialog({ onSuccess }: InviteAdminDialogProps) {
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="text-sm font-medium text-gray-900"
+              className="text-sm font-medium text-ink"
             >
               Email Address
             </label>
@@ -79,7 +79,7 @@ export function InviteAdminDialog({ onSuccess }: InviteAdminDialogProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="border border-gray-300"
+              className="border border-line-strong bg-surface text-ink dark:bg-surface"
             />
           </div>
 
@@ -87,7 +87,7 @@ export function InviteAdminDialog({ onSuccess }: InviteAdminDialogProps) {
             <div className="space-y-2">
               <label
                 htmlFor="firstName"
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium text-ink"
               >
                 First Name
               </label>
@@ -98,14 +98,14 @@ export function InviteAdminDialog({ onSuccess }: InviteAdminDialogProps) {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
-                className="border border-gray-300"
+                className="border border-line-strong bg-surface text-ink dark:bg-surface"
               />
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="lastName"
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium text-ink"
               >
                 Last Name
               </label>
@@ -116,14 +116,14 @@ export function InviteAdminDialog({ onSuccess }: InviteAdminDialogProps) {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
-                className="border border-gray-300"
+                className="border border-line-strong bg-surface text-ink dark:bg-surface"
               />
             </div>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-500/25 dark:bg-red-500/10">
+              <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
             </div>
           )}
 
@@ -132,14 +132,14 @@ export function InviteAdminDialog({ onSuccess }: InviteAdminDialogProps) {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="border border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="border border-line-strong text-ink-secondary hover:bg-surface-muted"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading || !email || !firstName || !lastName}
-              className="bg-[#363636] text-white hover:bg-gray-700"
+              className="bg-ink text-canvas hover:bg-ink/90"
             >
               {loading ? "Inviting..." : "Send Invite"}
             </Button>

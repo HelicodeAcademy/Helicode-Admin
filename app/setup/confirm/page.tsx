@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { authAPI } from "@/lib/api-services";
 import { useAuthStore } from "@/store/auth";
 
@@ -84,13 +85,14 @@ function SetupConfirmContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border border-gray-200">
+    <div className="relative flex min-h-screen items-center justify-center bg-canvas p-4">
+      <ThemeToggle className="absolute right-4 top-4" />
+      <Card className="w-full max-w-md border border-line bg-surface">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-ink">
             Complete Setup
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-ink-muted">
             {isInvitedAdmin
               ? "Enter your email, code, and create your account"
               : "Enter the code from your email and create your account"}
@@ -101,7 +103,7 @@ function SetupConfirmContent() {
             <div className="space-y-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium text-ink"
               >
                 Email Address
               </label>
@@ -113,14 +115,14 @@ function SetupConfirmContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={!isInvitedAdmin}
                 required
-                className={`border border-gray-300 ${!isInvitedAdmin ? "bg-gray-50" : ""}`}
+                className={`border border-line-strong bg-surface text-ink dark:bg-surface ${!isInvitedAdmin ? "bg-surface-muted dark:bg-surface-muted" : ""}`}
               />
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="code"
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium text-ink"
               >
                 Setup Code (from email)
               </label>
@@ -132,7 +134,7 @@ function SetupConfirmContent() {
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 maxLength={6}
                 required
-                className="border border-gray-300 font-mono"
+                className="border border-line-strong bg-surface font-mono text-ink dark:bg-surface"
               />
             </div>
 
@@ -140,7 +142,7 @@ function SetupConfirmContent() {
               <div className="space-y-2">
                 <label
                   htmlFor="firstName"
-                  className="text-sm font-medium text-gray-900"
+                  className="text-sm font-medium text-ink"
                 >
                   First Name
                 </label>
@@ -151,14 +153,14 @@ function SetupConfirmContent() {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
-                  className="border border-gray-300"
+                  className="border border-line-strong bg-surface text-ink dark:bg-surface"
                 />
               </div>
 
               <div className="space-y-2">
                 <label
                   htmlFor="lastName"
-                  className="text-sm font-medium text-gray-900"
+                  className="text-sm font-medium text-ink"
                 >
                   Last Name
                 </label>
@@ -169,7 +171,7 @@ function SetupConfirmContent() {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   required
-                  className="border border-gray-300"
+                  className="border border-line-strong bg-surface text-ink dark:bg-surface"
                 />
               </div>
             </div>
@@ -177,7 +179,7 @@ function SetupConfirmContent() {
             <div className="space-y-2">
               <label
                 htmlFor="password"
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium text-ink"
               >
                 Password
               </label>
@@ -188,15 +190,15 @@ function SetupConfirmContent() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="border border-gray-300"
+                className="border border-line-strong bg-surface text-ink dark:bg-surface"
               />
-              <p className="text-xs text-gray-500">At least 8 characters</p>
+              <p className="text-xs text-ink-subtle">At least 8 characters</p>
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="confirmPassword"
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium text-ink"
               >
                 Confirm Password
               </label>
@@ -207,13 +209,13 @@ function SetupConfirmContent() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="border border-gray-300"
+                className="border border-line-strong bg-surface text-ink dark:bg-surface"
               />
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-500/25 dark:bg-red-500/10">
+                <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
               </div>
             )}
 
@@ -227,7 +229,7 @@ function SetupConfirmContent() {
                 !firstName ||
                 !lastName
               }
-              className="w-full bg-[#363636] text-white hover:bg-gray-700"
+              className="w-full bg-ink text-canvas hover:bg-ink/90"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </Button>
@@ -242,8 +244,8 @@ export default function SetupConfirmPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <p className="text-gray-600">Loading...</p>
+        <div className="flex min-h-screen items-center justify-center bg-canvas">
+          <p className="text-ink-muted">Loading...</p>
         </div>
       }
     >

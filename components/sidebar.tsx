@@ -46,12 +46,12 @@ export function Sidebar() {
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
   return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-[#E4E7EC] bg-white">
+    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-line bg-surface">
       <div className="px-5 py-5">
-        <p className="text-[15px] font-semibold tracking-tight text-[#0F112A]">
+        <p className="text-[15px] font-semibold tracking-tight text-ink">
           Helicode
         </p>
-        <p className="mt-0.5 text-xs text-[#98A2B3]">Admin</p>
+        <p className="mt-0.5 text-xs text-ink-subtle">Admin</p>
       </div>
 
       <nav className="flex-1 space-y-5 px-3 pb-6">
@@ -63,7 +63,7 @@ export function Sidebar() {
 
           return (
             <div key={group.label}>
-              <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#98A2B3]">
+              <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-ink-subtle">
                 {group.label}
               </p>
               <div className="space-y-0.5">
@@ -84,8 +84,8 @@ export function Sidebar() {
                       className={cn(
                         "flex h-9 items-center gap-2.5 rounded-md px-3 text-sm font-medium transition-colors",
                         isActive
-                          ? "bg-[#0052FF]/10 text-[#0052FF]"
-                          : "text-[#585858] hover:bg-[#F9FAFB] hover:text-[#0F112A]",
+                          ? "bg-brand/10 text-brand"
+                          : "text-ink-muted hover:bg-surface-muted hover:text-ink",
                       )}
                     >
                       <Icon className="size-4 shrink-0" strokeWidth={1.75} />

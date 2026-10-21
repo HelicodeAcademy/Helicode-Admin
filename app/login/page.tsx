@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { authAPI } from "@/lib/api-services";
 import { useAuthStore } from "@/store/auth";
 
@@ -56,13 +57,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border border-gray-200">
+    <div className="relative flex min-h-screen items-center justify-center bg-canvas p-4">
+      <ThemeToggle className="absolute right-4 top-4" />
+      <Card className="w-full max-w-md border border-line bg-surface">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-ink">
             Admin Login
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-ink-muted">
             Sign in to your admin account
           </CardDescription>
         </CardHeader>
@@ -71,7 +73,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium text-ink"
               >
                 Email Address
               </label>
@@ -82,14 +84,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border border-gray-300"
+                className="border border-line-strong bg-surface text-ink dark:bg-surface"
               />
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="password"
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium text-ink"
               >
                 Password
               </label>
@@ -100,31 +102,31 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="border border-gray-300"
+                className="border border-line-strong bg-surface text-ink dark:bg-surface"
               />
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-500/25 dark:bg-red-500/10">
+                <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
               </div>
             )}
 
             <Button
               type="submit"
               disabled={loading || !email || !password}
-              className="w-full bg-[#363636] text-white hover:bg-gray-700"
+              className="w-full bg-ink text-canvas hover:bg-ink/90"
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center">
+          <div className="mt-6 border-t border-line pt-6">
+            <p className="text-center text-sm text-ink-muted">
               Don&apos;t have an account?{" "}
               <Link
                 href="/setup"
-                className="text-[#0052FF] font-medium hover:underline"
+                className="font-medium text-brand hover:underline"
               >
                 Setup here
               </Link>

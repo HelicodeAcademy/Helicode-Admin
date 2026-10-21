@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getApiClient } from "./api-client";
+import { downloadCsv } from "./csv-export";
 import { User } from "@/store/auth";
 
 const api = getApiClient();
@@ -42,16 +43,44 @@ export interface StatsResponse {
   };
 }
 
+export type ListSort = "createdAt" | "name";
+export type ListOrder = "asc" | "desc";
+
+export interface SignupCompany {
+  companyId: string;
+  companyName: string;
+  role?: string;
+  status?: string;
+  kycProfileSubmitted?: boolean | string;
+}
+
 export interface Signup {
   id: string;
-  email: string;
+  email?: string;
   employeeEmail: string;
+  fullName?: string;
   companyName?: string;
   teamName?: string;
   type: "company" | "team";
-  kycStatus: "PENDING" | "APPROVED" | "REJECTED";
-  bridgeCustomerStatus: "PENDING" | "CONNECTED" | "FAILED";
+  kycStatus?: string;
+  tosStatus?: string;
+  bridgeCustomerStatus?: string;
+  hasBridgeWallet?: boolean;
+  bridgeCustomerType?: string;
   dateOfSignup: string;
+  companies?: SignupCompany[];
+}
+
+export interface SignupsFilters {
+  type?: "company" | "team";
+  search?: string;
+  kycStatus?: string;
+  tosStatus?: "pending" | "approved";
+  country?: string;
+  from?: string;
+  to?: string;
+  sort?: ListSort;
+  order?: ListOrder;
 }
 
 export interface SignupsResponse {
@@ -84,12 +113,32 @@ export interface TeamMember {
   id: string;
   email: string;
   fullName: string;
-  role: string;
+  role?: string;
+  country?: string | null;
+  emailStatus?: string;
+  kycStatus?: string;
+  bridgeCustomerStatus?: string;
+  hasBridgeWallet?: boolean;
   walletBalance?: number | null;
+  walletCurrency?: string | null;
+  numberOfTransactions?: number | null;
   totalTransactions?: number | null;
+  belongsToMoreThanOneCompany?: boolean;
+  companyCount?: number;
   companies: Companies[];
-  createdAt: string;
+  createdAt?: string;
   signupDate: string;
+}
+
+export interface TeamsFilters {
+  search?: string;
+  kycStatus?: string;
+  country?: string;
+  companyId?: string;
+  from?: string;
+  to?: string;
+  sort?: ListSort;
+  order?: ListOrder;
 }
 
 export interface TeamsResponse {
@@ -108,7 +157,7 @@ export interface Admin {
   firstName: string;
   lastName: string;
   role: "SUPER_ADMIN" | "ADMIN";
-  status: "ACTIVE" | "PENDING";
+  status: "ACTIVE" | "PENDING" | "DISABLED";
   invitedAt: string;
   createdAt: string;
 }
@@ -177,6 +226,7 @@ export interface PayrollRevenueResponse {
 
 export interface PayrollRevenueFilters {
   companyId?: string;
+  companySearch?: string;
   status?: PayrollTransferStatus;
   from?: string;
   to?: string;
@@ -250,11 +300,17 @@ export interface OfframpRevenueResponse {
 
 export interface OfframpRevenueFilters {
   companyId?: string;
+  companySearch?: string;
   source?: OfframpSource;
   provider?: OfframpProvider;
   status?: OfframpRevenueStatus;
   from?: string;
   to?: string;
+}
+
+export interface AdminsFilters {
+  search?: string;
+  status?: "PENDING" | "ACTIVE" | "DISABLED";
 }
 
 // Auth endpoints
@@ -300,7 +356,11 @@ export const dashboardAPI = {
     return response.data.data;
   },
 
-  getSignups: async (page: number = 1, limit: number = 10, filters?: any) => {
+  getSignups: async (
+    page: number = 1,
+    limit: number = 20,
+    filters?: SignupsFilters,
+  ) => {
     const response = await api.get<{ data: SignupsResponse }>(
       "/admin-dashboard/signups",
       {
@@ -314,7 +374,19 @@ export const dashboardAPI = {
     return response.data.data;
   },
 
-  getTeams: async (page: number = 1, limit: number = 10, filters?: any) => {
+  exportSignupsCsv: async (filters?: SignupsFilters) => {
+    return downloadCsv(
+      "/admin-dashboard/signups",
+      { ...filters },
+      "signups.csv",
+    );
+  },
+
+  getTeams: async (
+    page: number = 1,
+    limit: number = 20,
+    filters?: TeamsFilters,
+  ) => {
     const response = await api.get<{ data: TeamsResponse }>(
       "/admin-dashboard/teams",
       {
@@ -326,6 +398,10 @@ export const dashboardAPI = {
       },
     );
     return response.data.data;
+  },
+
+  exportTeamsCsv: async (filters?: TeamsFilters) => {
+    return downloadCsv("/admin-dashboard/teams", { ...filters }, "teams.csv");
   },
 
   getPayrollRevenue: async (
@@ -363,17 +439,38 @@ export const dashboardAPI = {
     );
     return response.data.data;
   },
+
+  exportPayrollRevenueCsv: async (filters?: PayrollRevenueFilters) => {
+    return downloadCsv(
+      "/admin-dashboard/payroll-revenue",
+      { ...filters },
+      "payroll-revenue.csv",
+    );
+  },
+
+  exportOfframpRevenueCsv: async (filters?: OfframpRevenueFilters) => {
+    return downloadCsv(
+      "/admin-dashboard/offramp-revenue",
+      { ...filters },
+      "offramp-revenue.csv",
+    );
+  },
 };
 
 // Admin management endpoints
 export const adminAPI = {
-  getAdmins: async (page: number = 1, limit: number = 10) => {
+  getAdmins: async (
+    page: number = 1,
+    limit: number = 20,
+    filters?: AdminsFilters,
+  ) => {
     const response = await api.get<{ data: AdminsResponse }>(
       "/admin-dashboard/admins",
       {
         params: {
           page,
           limit,
+          ...filters,
         },
       },
     );

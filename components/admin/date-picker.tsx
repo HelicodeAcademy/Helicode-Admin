@@ -39,7 +39,7 @@ export function DatePicker({
           variant="outline"
           className={cn(
             fieldClassName("w-full justify-start px-3 text-left font-normal"),
-            !selected && "text-[#98A2B3]",
+            !selected && "text-ink-subtle",
           )}
         >
           <CalendarIcon className="mr-2 size-4" />
