@@ -99,7 +99,9 @@ export default function TeamsPage() {
         );
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to export CSV");
+      setError(
+        err.response?.data?.message || err.message || "Failed to export CSV",
+      );
     } finally {
       setExporting(false);
     }
@@ -213,7 +215,9 @@ export default function TeamsPage() {
                   >
                     <td className={tdClass}>
                       <div className="font-medium">{member.fullName}</div>
-                      <div className="text-xs text-ink-muted">{member.email}</div>
+                      <div className="text-xs text-ink-muted">
+                        {member.email}
+                      </div>
                     </td>
                     <td className={tdClass}>{member.country || "—"}</td>
                     <td className={tdClass}>
@@ -242,7 +246,9 @@ export default function TeamsPage() {
                           ))
                         : "—"}
                     </td>
-                    <td className={`${tdClass} whitespace-nowrap text-[#475467]`}>
+                    <td
+                      className={`${tdClass} whitespace-nowrap text-[#475467]`}
+                    >
                       {formatDate(member.signupDate)}
                     </td>
                   </tr>
