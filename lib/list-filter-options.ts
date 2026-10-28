@@ -28,6 +28,18 @@ export const SORT_OPTIONS = [
   { label: "Name Z–A", value: "name:desc" },
 ] as const;
 
+export const ACTIVE_OPTIONS = [
+  { label: "All activity", value: "" },
+  { label: "Active", value: "true" },
+  { label: "Not active", value: "false" },
+] as const;
+
+export function parseActive(value: string) {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return undefined;
+}
+
 export function parseSort(value: string) {
   const [sort, order] = value.split(":");
   return {

@@ -31,16 +31,50 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
+export interface VolumeSnapshot {
+  total: number;
+  currency?: string;
+  companyWalletVolume?: number;
+  teamWalletVolume?: number;
+  transactionCount?: number;
+  byCurrency?: Record<string, number>;
+  byWalletType?: Record<string, number>;
+  walletsScanned?: number;
+  failedWallets?: unknown[];
+  fetchedEvents?: number;
+  cachedEvents?: number;
+  lastSyncedAt?: string;
+  syncInfo?: Record<string, number>;
+}
+
+export interface VolumeByMonth extends VolumeSnapshot {
+  month: string;
+}
+
+export interface VolumeForRange extends VolumeSnapshot {
+  from: string;
+  to: string;
+}
+
+export interface StatsFilters {
+  months?: string;
+  from?: string;
+  to?: string;
+}
+
 export interface StatsResponse {
   totalSignups: number;
   activeBusinesses: number;
   activeTeams: number;
-  volume: {
-    total: number;
-    byCurrency: Record<string, number>;
-    byWalletType: Record<string, number>;
-    syncInfo: Record<string, number>;
-  };
+  volume: VolumeSnapshot;
+  volumeByMonth?: VolumeByMonth[];
+  volumeForRange?: VolumeForRange;
+}
+
+export interface CountryStat {
+  country: string;
+  activeCompanies: number;
+  activeTeams: number;
 }
 
 export type ListSort = "createdAt" | "name";
@@ -77,6 +111,7 @@ export interface SignupsFilters {
   kycStatus?: string;
   tosStatus?: "pending" | "approved";
   country?: string;
+  active?: boolean;
   from?: string;
   to?: string;
   sort?: ListSort;
@@ -135,6 +170,7 @@ export interface TeamsFilters {
   kycStatus?: string;
   country?: string;
   companyId?: string;
+  active?: boolean;
   from?: string;
   to?: string;
   sort?: ListSort;
@@ -349,9 +385,17 @@ export const authAPI = {
 
 // Dashboard endpoints
 export const dashboardAPI = {
-  getStats: async () => {
+  getStats: async (filters?: StatsFilters) => {
     const response = await api.get<{ data: StatsResponse }>(
       "/admin-dashboard/stats",
+      { params: filters },
+    );
+    return response.data.data;
+  },
+
+  getCountries: async () => {
+    const response = await api.get<{ data: CountryStat[] }>(
+      "/admin-dashboard/countries",
     );
     return response.data.data;
   },

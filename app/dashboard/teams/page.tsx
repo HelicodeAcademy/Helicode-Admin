@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { dashboardAPI, TeamMember } from "@/lib/api-services";
 import { PaginationControls } from "@/components/pagination-controls";
 import { DatePicker } from "@/components/admin/date-picker";
@@ -9,8 +10,10 @@ import { ExportButton } from "@/components/admin/export-button";
 import { SearchInput } from "@/components/admin/search-input";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
+  ACTIVE_OPTIONS,
   KYC_STATUS_OPTIONS,
   SORT_OPTIONS,
+  parseActive,
   parseSort,
 } from "@/lib/list-filter-options";
 import {
@@ -34,7 +37,12 @@ import {
 
 const LIMIT = 20;
 
-export default function TeamsPage() {
+function activeFromParam(value: string | null) {
+  return value === "true" || value === "false" ? value : "";
+}
+
+function TeamsPageContent() {
+  const searchParams = useSearchParams();
   const [teams, setTeams] = useState<TeamMember[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -45,7 +53,8 @@ export default function TeamsPage() {
   const [notice, setNotice] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [kycStatus, setKycStatus] = useState("");
-  const [country, setCountry] = useState("");
+  const [country, setCountry] = useState(searchParams.get("country") ?? "");
+  const [active, setActive] = useState(activeFromParam(searchParams.get("active")));
   const [companyId, setCompanyId] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -59,12 +68,13 @@ export default function TeamsPage() {
       kycStatus: kycStatus || undefined,
       country: country.trim() || undefined,
       companyId: companyId.trim() || undefined,
+      active: parseActive(active),
       from: from || undefined,
       to: to || undefined,
       sort,
       order,
     };
-  }, [search, kycStatus, country, companyId, from, to, sortValue]);
+  }, [search, kycStatus, country, companyId, active, from, to, sortValue]);
 
   const resetPage = () => setPage(1);
 
@@ -122,7 +132,7 @@ export default function TeamsPage() {
 
         <Panel>
           <div className="space-y-3 border-b border-line px-5 py-4">
-            <div className="grid gap-3 lg:grid-cols-[1fr_11rem_10rem]">
+            <div className="grid gap-3 lg:grid-cols-[1fr_11rem_11rem_10rem]">
               <SearchInput
                 value={searchInput}
                 onChange={(value) => {
@@ -140,6 +150,14 @@ export default function TeamsPage() {
                 options={[...KYC_STATUS_OPTIONS]}
               />
               <NativeSelect
+                value={active}
+                onChange={(value) => {
+                  setActive(value);
+                  resetPage();
+                }}
+                options={[...ACTIVE_OPTIONS]}
+              />
+              <NativeSelect
                 value={sortValue}
                 onChange={(value) => {
                   setSortValue(value);
@@ -148,15 +166,15 @@ export default function TeamsPage() {
                 options={[...SORT_OPTIONS]}
               />
             </div>
-            <div className="grid gap-3 md:grid-cols-[8rem_1fr_11.5rem_11.5rem]">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(12rem,1fr)_minmax(12rem,1fr)_11.5rem_11.5rem]">
               <Field label="Country">
                 <input
                   value={country}
                   onChange={(event) => {
-                    setCountry(event.target.value.toUpperCase().slice(0, 8));
+                    setCountry(event.target.value.slice(0, 80));
                     resetPage();
                   }}
-                  placeholder="NG"
+                  placeholder="Nigeria or NG"
                   className={fieldClassName()}
                 />
               </Field>
@@ -265,5 +283,19 @@ export default function TeamsPage() {
         </Panel>
       </div>
     </Page>
+  );
+}
+
+export default function TeamsPage() {
+  return (
+    <Suspense
+      fallback={
+        <Page>
+          <p className="text-sm text-ink-muted">Loading teams...</p>
+        </Page>
+      }
+    >
+      <TeamsPageContent />
+    </Suspense>
   );
 }

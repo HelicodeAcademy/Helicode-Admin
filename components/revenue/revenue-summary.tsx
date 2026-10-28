@@ -8,35 +8,34 @@ import {
   PayrollRevenueStats,
 } from "@/lib/api-services";
 import { Metric, Money, Notice, Panel } from "@/components/admin/shell";
+import { fromCents, toCents } from "@/lib/money";
+import { formatRangeLabel } from "@/lib/utc-period";
 
-function toCents(amount: string | undefined) {
-  const [whole = "0", fraction = "00"] = (amount || "0").split(".");
-  const dollars = Number(whole);
-  const cents = Number(fraction.padEnd(2, "0").slice(0, 2));
-  if (!Number.isFinite(dollars) || !Number.isFinite(cents)) return 0;
-  return dollars * 100 + cents;
-}
-
-function fromCents(cents: number) {
-  const whole = Math.floor(cents / 100);
-  const fraction = String(cents % 100).padStart(2, "0");
-  return `${whole}.${fraction}`;
-}
-
-export function RevenueSummary() {
+export function RevenueSummary({
+  from,
+  to,
+}: {
+  from?: string;
+  to?: string;
+}) {
   const [payroll, setPayroll] = useState<PayrollRevenueStats | null>(null);
   const [offramp, setOfframp] = useState<OfframpRevenueStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const rangeLabel = formatRangeLabel(from, to);
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
       try {
+        setLoading(true);
+        setError("");
+        const dateFilters =
+          from || to ? { from: from || undefined, to: to || undefined } : undefined;
         const [payrollResult, offrampResult] = await Promise.allSettled([
-          dashboardAPI.getPayrollRevenue(1, 1),
-          dashboardAPI.getOfframpRevenue(1, 1),
+          dashboardAPI.getPayrollRevenue(1, 1, dateFilters),
+          dashboardAPI.getOfframpRevenue(1, 1, dateFilters),
         ]);
 
         if (cancelled) return;
@@ -71,7 +70,7 @@ export function RevenueSummary() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [from, to]);
 
   const currency = payroll?.currency || offramp?.currency || "USDC";
   const sameCurrency =
@@ -114,7 +113,7 @@ export function RevenueSummary() {
                   <Money amount={collected} currency={currency} />
                 )
               }
-              detail="Payroll and offramp fees"
+              detail={rangeLabel === "All time" ? "Payroll and offramp fees" : rangeLabel}
             />
             <Metric
               label="Payroll"

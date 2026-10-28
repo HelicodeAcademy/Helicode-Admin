@@ -66,7 +66,7 @@ export function Metric({
       <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
         {label}
       </p>
-      <p className="mt-2 text-[1.75rem] font-semibold leading-none tracking-tight text-ink tabular-nums">
+      <p className="mt-2 whitespace-nowrap text-[1.75rem] font-semibold leading-none tracking-tight text-ink tabular-nums">
         {value}
       </p>
       {detail ? <p className="mt-2 text-sm text-ink-muted">{detail}</p> : null}
